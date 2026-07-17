@@ -150,6 +150,7 @@
   .copy.done{border-color:var(--accent);color:var(--accent);}
   .copy svg{width:13px;height:13px;}
   .cwait{color:var(--muted);font-size:13px;padding:6px 2px;}
+  .contact-type{margin-left:2px;font-size:9px;font-weight:700;letter-spacing:.07em;color:var(--accent);background:rgba(26,109,255,.10);border:1px solid rgba(26,109,255,.18);padding:3px 8px;border-radius:999px;}
   .vbadge{display:none;font-size:10px;font-weight:600;letter-spacing:.04em;color:#ffffff;background:#16a34a;padding:3px 9px;border-radius:999px;}
   .vbadge.show{display:inline-block;}
   .cverify{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--accent);}
@@ -269,7 +270,7 @@
         </div>
 
         <div class="tile customer cust" data-accent="cyan" id="t-customer">
-          <div class="th"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> <span id="claimantTitle">Claimant</span> <span class="th-right"><span class="vbadge" id="vbadge">&#10003; Verified</span></span></div>
+          <div class="th"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Contact <span class="contact-type" id="contactType">Claimant</span> <span class="th-right"><span class="vbadge" id="vbadge">&#10003; Verified</span></span></div>
           <div class="cwait" id="claimantWait">Awaiting a policy number — the claimant is not yet identified.</div>
           <div id="claimantBody" style="display:none">
             <div class="cust-row">
@@ -462,7 +463,7 @@ function updateComposerPlaceholder(){
 }
 function applyIndustry(){
   const config = currentIndustry();
-  $("claimantTitle").textContent = config.cardTitle;
+  $("contactType").textContent = config.participant;
   $("participantRoleLabel").textContent = config.participant;
   $("primaryIdLabel").textContent = config.primaryId;
   $("secondaryIdLabel").textContent = config.secondaryId;
