@@ -227,7 +227,7 @@
       <div class="convo" id="convo"></div>
       <div class="composer">
         <div class="roletoggle">
-          <button class="role active" id="role-Claimant" onclick="setRole('Claimant')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Claimant</button>
+          <button class="role active" id="role-Claimant" onclick="setRole('Claimant')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> <span id="participantRoleLabel">Claimant</span></button>
           <button class="role" id="role-Agent" onclick="setRole('Agent')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><rect x="2" y="13" width="4" height="7" rx="1.5"/><rect x="18" y="13" width="4" height="7" rx="1.5"/></svg> Agent</button>
         </div>
         <textarea id="msg" placeholder="Type as Claimant and press Enter to send…  (Shift+Enter = new line)" onkeydown="onKey(event)"></textarea>
@@ -237,7 +237,7 @@
           <span class="status" id="status"><span class="spin"></span><span id="statusText"></span></span>
         </div>
         <div class="teampick">
-          <label for="teamSelect">Copilot</label>
+          <label for="teamSelect">Profile</label>
           <select id="teamSelect" onchange="pickEndpoint()">
             <option value="https://endpoint-trial.cognigy.ai/d9ea93cfe6b42d8a5f065a6419a7e2e85799c265cd5cf13d3cda1cbef8f4b927">Andy Pike</option>
             <option value="https://endpoint-trial.cognigy.ai/2609d9f21960de85ec5735767466c8e1a6a3222ed43f71e7168b9145e6fc9aab">Andy Martin</option>
@@ -386,20 +386,92 @@ function copyCustomerDetail(button){
 function rid(){ return "sim-" + Date.now() + "-" + Math.floor(Math.random()*1e6); }
 function setStatus(t,opt){ opt=opt||{}; $("statusText").textContent=t||""; $("status").className="status"+(opt.busy?" busy":"")+(opt.err?" err":""); }
 const INDUSTRIES = {
-  insurance: { cardTitle:"Claimant", primaryId:"Policy no.", secondaryId:"Claim ref", status:"Claim status" },
-  banking: { cardTitle:"Customer", primaryId:"Account no.", secondaryId:"Case ref", status:"Account status" },
-  travel: { cardTitle:"Passenger", primaryId:"Booking reference", secondaryId:"Trip reference", status:"Booking status" },
-  healthcare: { cardTitle:"Patient", primaryId:"Patient ID", secondaryId:"Case reference", status:"Case status" },
-  utilities: { cardTitle:"Customer", primaryId:"Account number", secondaryId:"Case reference", status:"Service status" },
-  general: { cardTitle:"Customer", primaryId:"Customer ID", secondaryId:"Reference", status:"Status" }
+  insurance: {
+    participant:"Claimant",
+    cardTitle:"Claimant",
+    primaryId:"Policy no.",
+    primaryIdentifier:"policy number",
+    secondaryId:"Claim ref",
+    status:"Claim status",
+    recordName:"claimant record"
+  },
+  banking: {
+    participant:"Customer",
+    cardTitle:"Customer",
+    primaryId:"Account no.",
+    primaryIdentifier:"account number",
+    secondaryId:"Case ref",
+    status:"Account status",
+    recordName:"customer record"
+  },
+  travel: {
+    participant:"Passenger",
+    cardTitle:"Passenger",
+    primaryId:"Booking reference",
+    primaryIdentifier:"booking reference",
+    secondaryId:"Trip reference",
+    status:"Booking status",
+    recordName:"passenger record"
+  },
+  healthcare: {
+    participant:"Patient",
+    cardTitle:"Patient",
+    primaryId:"Patient ID",
+    primaryIdentifier:"patient ID",
+    secondaryId:"Case reference",
+    status:"Case status",
+    recordName:"patient record"
+  },
+  utilities: {
+    participant:"Customer",
+    cardTitle:"Customer",
+    primaryId:"Account number",
+    primaryIdentifier:"account number",
+    secondaryId:"Case reference",
+    status:"Service status",
+    recordName:"customer record"
+  },
+  general: {
+    participant:"Customer",
+    cardTitle:"Customer",
+    primaryId:"Customer ID",
+    primaryIdentifier:"customer ID",
+    secondaryId:"Reference",
+    status:"Status",
+    recordName:"customer record"
+  }
 };
-function applyIndustry(){
+function currentIndustry(){
   const select = $("industrySelect");
-  const config = INDUSTRIES[(select && select.value) || "insurance"] || INDUSTRIES.general;
+  return INDUSTRIES[(select && select.value) || "insurance"] || INDUSTRIES.general;
+}
+function roleDisplayName(role){
+  return role === "Claimant" ? currentIndustry().participant : role;
+}
+function awaitingIdentificationMessage(){
+  const config = currentIndustry();
+  return "Awaiting a " + config.primaryIdentifier + " — the " + config.participant.toLowerCase() + " is not yet identified.";
+}
+function unmatchedIdentificationMessage(value){
+  const config = currentIndustry();
+  return config.primaryId.replace(/\.$/, "") + " " + value + " was mentioned but could not be matched to a " + config.recordName + ".";
+}
+function updateComposerPlaceholder(){
+  const msg = $("msg");
+  if(msg) msg.placeholder = "Type as " + roleDisplayName(activeRole) + " and press Enter to send…  (Shift+Enter = new line)";
+}
+function applyIndustry(){
+  const config = currentIndustry();
   $("claimantTitle").textContent = config.cardTitle;
+  $("participantRoleLabel").textContent = config.participant;
   $("primaryIdLabel").textContent = config.primaryId;
   $("secondaryIdLabel").textContent = config.secondaryId;
   $("statusLabel").textContent = config.status;
+  updateComposerPlaceholder();
+  if($("claimantBody") && $("claimantBody").style.display === "none" && $("claimantWait")){
+    $("claimantWait").textContent = awaitingIdentificationMessage();
+  }
+  renderConvo();
 }
 function toggleTheme(){ document.body.classList.toggle('light'); $("themeLabel").textContent = document.body.classList.contains('light') ? 'Dark' : 'Light'; }
 function updateAvatar(){ const n=($("c_name").value.trim()||" ").split(/\s+/); $("avatarInitials").textContent=(((n[0]||" ")[0]||"")+((n[1]||"")[0]||"")).toUpperCase(); const pic=$("c_pic").value.trim(), img=$("avatarImg"); if(pic){ img.src=pic; img.style.display='block'; } else { img.style.display='none'; } }
@@ -407,7 +479,7 @@ function customerData(){ const n=$("c_name").value.trim().split(/\s+/); return {
 function updateStatus(){ var el=$("c_status"); if(!el) return; var v=el.value; var c=/settled/i.test(v)?"#7bd88a":/assessment/i.test(v)?"#7db4ff":"#e6b34d"; el.style.color=c; el.style.borderColor=c; }
 let activeRole = 'Claimant';
 let loadedPolicy = "";   // tracks which policy's profile we've auto-filled from Cognigy
-function setRole(r){ activeRole=r; ['Claimant','Agent'].forEach(x=>{ var b=$('role-'+x); if(b) b.className='role'+(x===r?' active':''); }); $('msg').placeholder='Type as '+r+' and press Enter to send…  (Shift+Enter = new line)'; $('msg').focus(); }
+function setRole(r){ activeRole=r; ['Claimant','Agent'].forEach(x=>{ var b=$('role-'+x); if(b) b.className='role'+(x===r?' active':''); }); updateComposerPlaceholder(); $('msg').focus(); }
 function pickEndpoint(){ $("endpoint").value = $("teamSelect").value; cachedRef = null; $("cdGrid").className = "cd-grid"; $("cdGrid").innerHTML = ""; $("cdHint").style.display = ""; if($("custDetails") && $("custDetails").open) fetchReference(); }
 
 // --- Customer details crib sheet (pulled from the flow's profile) ---
@@ -477,9 +549,9 @@ function sendActive(){ send(activeRole); }
 function onKey(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendActive(); } }
 
 function renderConvo(){
-  if(!transcript.length){ $("convo").innerHTML = '<div class="empty">Play out a claims call — send lines as the Claimant or the Agent to see how Copilot responds.</div>'; return; }
+  if(!transcript.length){ $("convo").innerHTML = '<div class="empty">Play out a conversation — send lines as the ' + esc(currentIndustry().participant) + ' or the Agent to see how Copilot responds.</div>'; return; }
   $("convo").innerHTML = transcript.map(t =>
-    `<div class="msg ${t.role.toLowerCase()}"><span class="who">${t.role}</span>${esc(t.text)}</div>`
+    `<div class="msg ${t.role.toLowerCase()}"><span class="who">${esc(roleDisplayName(t.role))}</span>${esc(t.text)}</div>`
   ).join("");
   $("convo").scrollTop = $("convo").scrollHeight;
 }
@@ -563,12 +635,12 @@ async function refresh(){
     } else if(pol){
       // A policy was mentioned but Cognigy found no matching record.
       $("claimantBody").style.display="none"; $("claimantWait").style.display="";
-      $("claimantWait").textContent = "Policy " + pol + " was mentioned but could not be matched to a claimant record.";
+      $("claimantWait").textContent = unmatchedIdentificationMessage(pol);
       $("vbadge").className="vbadge"; $("cverify").className="cverify";
       $("t-previous").style.display="none";
     } else {
       $("claimantWait").style.display=""; $("claimantBody").style.display="none";
-      $("claimantWait").textContent = "Awaiting a policy number — the claimant is not yet identified.";
+      $("claimantWait").textContent = awaitingIdentificationMessage();
       $("vbadge").className="vbadge"; $("cverify").className="cverify";
       $("t-previous").style.display="none";
     }
@@ -614,7 +686,7 @@ function resetSim(){
   transcript.length = 0; actionsTaken.length = 0; loadedPolicy = ""; renderConvo();
   $("answer").innerHTML = $("nba").innerHTML = $("summary").innerHTML = $("sentiment").innerHTML = "—";
   $("lang").className = "lang"; $("answerEn").className = "en"; $("actStatus").textContent = "";
-  $("claimantWait").style.display=""; $("claimantBody").style.display="none"; $("vbadge").className="vbadge"; $("cverify").className="cverify";
+  $("claimantWait").style.display=""; $("claimantBody").style.display="none"; $("claimantWait").textContent = awaitingIdentificationMessage(); $("vbadge").className="vbadge"; $("cverify").className="cverify";
   if($("c_status")){ $("c_status").value="Active: Documents Outstanding"; updateStatus(); }
   $("t-previous").style.display="none"; $("t-actions").style.display="none";
   setStatus("Reset.");
