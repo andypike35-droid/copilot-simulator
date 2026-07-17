@@ -39,6 +39,13 @@
   .conn .dot{width:8px;height:8px;border-radius:50%;background:#28d17c;box-shadow:0 0 10px #28d17c;animation:breathe 2.4s infinite;}
   .tbtn{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);border:1px solid var(--line);padding:6px 12px;border-radius:999px;background:var(--panel);cursor:pointer;font-family:inherit;}
   .tbtn:hover{color:var(--fg);}.tbtn svg{width:14px;height:14px;}
+  .industry-picker{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);padding:5px 10px;border-radius:999px;background:var(--panel);color:var(--muted);}
+  .industry-picker svg{width:14px;height:14px;flex:none;color:var(--accent);}
+  .industry-picker select{border:0;outline:0;background:transparent;color:var(--muted);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;padding:0 18px 0 0;}
+  .industry-picker select:hover,.industry-picker select:focus{color:var(--fg);}
+  .industry-picker select option{color:#101a30;background:#fff;}
+  body.light .industry-picker{background:#fff;}
+  @media (max-width:720px){.industry-picker{display:none;}}
   @keyframes breathe{0%,100%{opacity:.6}50%{opacity:1}}
 
   main{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:22px;max-width:1260px;margin:0 auto;align-items:start;}
@@ -199,6 +206,17 @@
     </div>
     <div class="right">
       <button class="tbtn" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg><span id="themeLabel">Dark</span></button>
+      <div class="industry-picker" title="Change the terminology used on the profile card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1"/><path d="M14 9h1"/><path d="M9 13h1"/><path d="M14 13h1"/><path d="M10 21v-4h4v4"/></svg>
+        <select id="industrySelect" aria-label="Industry" onchange="applyIndustry()">
+          <option value="insurance">Insurance</option>
+          <option value="banking">Banking</option>
+          <option value="travel">Travel</option>
+          <option value="healthcare">Healthcare</option>
+          <option value="utilities">Utilities</option>
+          <option value="general">General</option>
+        </select>
+      </div>
       <div class="conn"><span class="dot"></span> Connected</div>
     </div>
   </header>
@@ -251,7 +269,7 @@
         </div>
 
         <div class="tile customer cust" data-accent="cyan" id="t-customer">
-          <div class="th"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Claimant <span class="th-right"><span class="vbadge" id="vbadge">&#10003; Verified</span></span></div>
+          <div class="th"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> <span id="claimantTitle">Claimant</span> <span class="th-right"><span class="vbadge" id="vbadge">&#10003; Verified</span></span></div>
           <div class="cwait" id="claimantWait">Awaiting a policy number — the claimant is not yet identified.</div>
           <div id="claimantBody" style="display:none">
             <div class="cust-row">
@@ -261,9 +279,9 @@
                 <div class="cgrid">
                   <label>Relationship<input class="cin" id="c_rel" value="Primary beneficiary (spouse)"/></label>
                   <label>Deceased<input class="cin" id="c_deceased" value="Sarah Pike"/></label>
-                  <label style="grid-column:1/-1">Policy no.<input class="cin" id="c_policy" value="MET2019004872"/></label>
-                  <label>Claim ref<input class="cin" id="c_claim" value="MET-CLM-2026-018847"/></label>
-                  <label>Claim status<select class="cin cstatus" id="c_status" onchange="updateStatus()"><option selected>Active: Documents Outstanding</option><option>Active: In Assessment</option><option>Settled</option></select></label>
+                  <label style="grid-column:1/-1"><span id="primaryIdLabel">Policy no.</span><input class="cin" id="c_policy" value="MET2019004872"/></label>
+                  <label><span id="secondaryIdLabel">Claim ref</span><input class="cin" id="c_claim" value="MET-CLM-2026-018847"/></label>
+                  <label><span id="statusLabel">Claim status</span><select class="cin cstatus" id="c_status" onchange="updateStatus()"><option selected>Active: Documents Outstanding</option><option>Active: In Assessment</option><option>Settled</option></select></label>
                   <label>Phone<input class="cin" id="c_phone" value="+27 82 555 0147"/></label>
                   <label>Email<input class="cin" id="c_email" value="andy.pike@email.com"/></label>
                   <label style="grid-column:1/-1">Photo URL<input class="cin" id="c_pic" value="https://media.licdn.com/dms/image/v2/D4E03AQFIw3AeE_lPWg/profile-displayphoto-scale_400_400/B4EZ8ddRJ2JYAg-/0/1782905642635?e=1784764800&amp;v=beta&amp;t=q8z3HXiCDttA-Y8ukajqqCVQtQLxKyCwlkdxg7y7IxA" oninput="updateAvatar()"/></label>
@@ -367,6 +385,22 @@ function copyCustomerDetail(button){
 }
 function rid(){ return "sim-" + Date.now() + "-" + Math.floor(Math.random()*1e6); }
 function setStatus(t,opt){ opt=opt||{}; $("statusText").textContent=t||""; $("status").className="status"+(opt.busy?" busy":"")+(opt.err?" err":""); }
+const INDUSTRIES = {
+  insurance: { cardTitle:"Claimant", primaryId:"Policy no.", secondaryId:"Claim ref", status:"Claim status" },
+  banking: { cardTitle:"Customer", primaryId:"Account no.", secondaryId:"Case ref", status:"Account status" },
+  travel: { cardTitle:"Passenger", primaryId:"Booking reference", secondaryId:"Trip reference", status:"Booking status" },
+  healthcare: { cardTitle:"Patient", primaryId:"Patient ID", secondaryId:"Case reference", status:"Case status" },
+  utilities: { cardTitle:"Customer", primaryId:"Account number", secondaryId:"Case reference", status:"Service status" },
+  general: { cardTitle:"Customer", primaryId:"Customer ID", secondaryId:"Reference", status:"Status" }
+};
+function applyIndustry(){
+  const select = $("industrySelect");
+  const config = INDUSTRIES[(select && select.value) || "insurance"] || INDUSTRIES.general;
+  $("claimantTitle").textContent = config.cardTitle;
+  $("primaryIdLabel").textContent = config.primaryId;
+  $("secondaryIdLabel").textContent = config.secondaryId;
+  $("statusLabel").textContent = config.status;
+}
 function toggleTheme(){ document.body.classList.toggle('light'); $("themeLabel").textContent = document.body.classList.contains('light') ? 'Dark' : 'Light'; }
 function updateAvatar(){ const n=($("c_name").value.trim()||" ").split(/\s+/); $("avatarInitials").textContent=(((n[0]||" ")[0]||"")+((n[1]||"")[0]||"")).toUpperCase(); const pic=$("c_pic").value.trim(), img=$("avatarImg"); if(pic){ img.src=pic; img.style.display='block'; } else { img.style.display='none'; } }
 function customerData(){ const n=$("c_name").value.trim().split(/\s+/); return { firstname:n[0]||"", lastname:n.slice(1).join(" "), relationship:$("c_rel").value.trim(), deceased:$("c_deceased").value.trim(), policy:$("c_policy").value.trim(), claimRef:$("c_claim")?$("c_claim").value.trim():"", claimStatus:$("c_status")?$("c_status").value:"", email:$("c_email").value.trim(), phone:$("c_phone").value.trim(), profilepic:$("c_pic").value.trim() }; }
@@ -595,6 +629,7 @@ function setupCollapse(){
     th.addEventListener('click', function(e){ if(e.target.closest('.copy')) return; tile.classList.toggle('collapsed'); });
   });
 }
+applyIndustry();
 renderConvo();
 updateAvatar();
 updateStatus();
